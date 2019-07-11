@@ -1,12 +1,7 @@
 { stdenv, fetchFromGitHub, }:
 let
   rev = "4.0.18";
-  src = fetchFromGitHub {
-    owner = "BuckleScript";
-    repo = "bucklescript";
-    rev = rev;
-    sha256 = "0ql5ivf0bjmb8495ak2lx9wis3yll64irn8rh7nbn4rrpfvr4vfb";
-  };
+  src = import ./src.nix { inherit fetchFromGitHub; };
 in
 stdenv.mkDerivation rec {
   version = "4.02.3";

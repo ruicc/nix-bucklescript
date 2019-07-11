@@ -1,12 +1,7 @@
 { stdenv, fetchFromGitHub, ninja, nodejs, ocamlPackages }:
 let
   version = "4.0.18";
-  src = fetchFromGitHub {
-    owner = "BuckleScript";
-    repo = "bucklescript";
-    rev = version;
-    sha256 = "0ql5ivf0bjmb8495ak2lx9wis3yll64irn8rh7nbn4rrpfvr4vfb";
-  };
+  src = import ./src.nix { inherit fetchFromGitHub; };
   ocaml =  import ./ocaml.nix {
     inherit stdenv fetchFromGitHub;
   };
