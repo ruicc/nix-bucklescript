@@ -7,10 +7,9 @@ stdenv.mkDerivation rec {
   version = "4.02.3";
   name = "ocaml-${version}+bs-${rev}";
   inherit src;
-  # this option is provided by scripts/buildocaml.sh -no-ocamlbuild -no-shared-libs -no-ocamldoc
   configurePhase = ''
     cd vendor/ocaml
-    ./configure -prefix $out -no-curses -no-graph -no-pthread -no-debugger
+    ./configure -prefix $out
   '';
   buildPhase = ''
     make -j9 world.opt
