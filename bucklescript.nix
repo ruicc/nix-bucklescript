@@ -32,13 +32,12 @@ stdenv.mkDerivation {
     node $out/scripts/ninja.js config
     node $out/scripts/ninja.js build
 
-    ln -s $out/jscomp/runtime $out/lib/ocaml
-    ln -s $out/jscomp/others $out/lib/ocaml
-    ln -s $out/jscomp/stdlib-406 $out/lib/ocaml
+    sed -i 's:./configure.py --bootstrap:python3.5 ./configure.py --bootstrap:' $out/scripts/install.js
   '';
   installPhase = ''
+    node $out/scripts/install.js
+
     mkdir -p $out/bin
-    ln -s ${ninja}/bin/ninja $out/lib/ninja.exe
     ln -s $out/lib/bsb $out/bin/bsb
     ln -s $out/lib/bsc $out/bin/bsc
     ln -s $out/lib/bsrefmt $out/bin/bsrefmt
