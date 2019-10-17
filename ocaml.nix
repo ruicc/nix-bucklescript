@@ -1,14 +1,14 @@
-{ stdenv, fetchFromGitHub, }:
+{ stdenv, fetchgit, }:
 let
-  rev = "4.0.18";
-  src = import ./src.nix { inherit fetchFromGitHub; };
+  rev = "6.2.0";
+  src = import ./src.nix { inherit fetchgit; };
 in
 stdenv.mkDerivation rec {
-  version = "4.02.3";
+  version = "4.06.1";
   name = "ocaml-${version}+bs-${rev}";
   inherit src;
   configurePhase = ''
-    cd vendor/ocaml
+    cd ocaml
     ./configure -prefix $out
   '';
   buildPhase = ''
@@ -19,7 +19,7 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with stdenv.lib; {
-    branch = "4.02";
-    platforms = with platforms; linux ++ darwin;
+    branch = "4.06";
+    platforms = with platforms; linux;
   };
 }

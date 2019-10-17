@@ -1,13 +1,13 @@
-{ stdenv, fetchFromGitHub, ninja, nodejs, ocamlPackages }:
+{ stdenv, fetchgit, ninja, nodejs, ocamlPackages, python35 }:
 let
-  version = "4.0.18";
-  src = import ./src.nix { inherit fetchFromGitHub; };
+  version = "6.2.0";
+  ocamlver = "4.06.1";
+  src = import ./src.nix { inherit fetchgit; };
   ocaml =  import ./ocaml.nix {
-    inherit stdenv fetchFromGitHub;
+    inherit stdenv fetchgit;
   };
   oPkgs = ocamlPackages.overrideScope' (self: super: {
     inherit ocaml;
-    ocamlbuild = ocaml;
   });
 in
 stdenv.mkDerivation {
@@ -15,41 +15,30 @@ stdenv.mkDerivation {
   version = version;
   inherit src;
   BS_RELEASE_BUILD = "true";
-  buildInputs = [ ocaml oPkgs.cppo oPkgs.camlp4 ninja nodejs ];
+  buildInputs = [ ocaml oPkgs.cppo oPkgs.camlp4 ninja nodejs python35 ];
   buildPhase = ''
     mkdir -p $out 
     cp -rf jscomp lib scripts vendor odoc_gen $out
     cp -r bsconfig.json package.json $out
-    for name in $(find ${ocaml} -printf "%P\n");
+
+    mkdir -p $out/native/${ocamlver}/bin
+    for name in $(find ${ocaml}/bin -printf "%P\n");
     do
-      if [ -d ${ocaml}/$name ]; then
-        mkdir -p $out/vendor/ocaml/$name
-      else
-        ln -sf ${ocaml}/$name $out/vendor/ocaml/$name
-      fi
+        ln -sf ${ocaml}/bin/$name $out/native/${ocamlver}/bin/$name
     done
 
-    # bug patch
-    sed -i 's/..\/vendor\/ocaml\/ocamlopt.opt/..\/vendor\/ocaml\/bin\/ocamlopt.opt/' $out/jscomp/snapshot.ninja
+    rm -f $out/vendor/ninja/snapshot/ninja.linux
+    cp ${ninja}/bin/ninja $out/vendor/ninja/snapshot/ninja.linux 
+    node $out/scripts/ninja.js config
+    node $out/scripts/ninja.js build
 
-    # build
-    ninja -C $out/jscomp
-
-    # provideNinja
-    ln -s ${ninja}/bin/ninja $out/lib/ninja.exe
-    # provideCompiler
-    ninja -C $out/lib
-    # buildLibs
-    cd $out/jscomp
-    ninja -f release.ninja -t clean
-    ninja -f release.ninja
-    # install
     ln -s $out/jscomp/runtime $out/lib/ocaml
     ln -s $out/jscomp/others $out/lib/ocaml
-    ln -s $out/jscomp/stdlib-402 $out/lib/ocaml
+    ln -s $out/jscomp/stdlib-406 $out/lib/ocaml
   '';
   installPhase = ''
     mkdir -p $out/bin
+    ln -s ${ninja}/bin/ninja $out/lib/ninja.exe
     ln -s $out/lib/bsb $out/bin/bsb
     ln -s $out/lib/bsc $out/bin/bsc
     ln -s $out/lib/bsrefmt $out/bin/bsrefmt
