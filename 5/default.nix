@@ -3,10 +3,6 @@ let
   ocaml =  import ./ocaml.nix {
     inherit stdenv fetchFromGitHub;
   };
-  # oPkgs = ocamlPackages.overrideScope' (self: super: {
-  #   inherit ocaml;
-  #   ocamlbuild = ocaml;
-  # });
 in
 stdenv.mkDerivation rec {
   name = "bucklescript-${version}";

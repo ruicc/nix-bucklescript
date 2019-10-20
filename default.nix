@@ -1,4 +1,4 @@
 {
-    bucklescript = import ./bucklescript.nix;
-    ocaml =  import ./ocaml.nix;
+    bucklescript_4 = import ./4/bucklescript.nix;
+    bucklescript_5 = import ./5/;
 }
