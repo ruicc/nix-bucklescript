@@ -13,7 +13,7 @@ in
 stdenv.mkDerivation {
   name = "bucklescript-${version}";
   version = version;
-  inherit src;
+  inherit src ocaml;
   BS_RELEASE_BUILD = "true";
   buildInputs = [ ocaml oPkgs.cppo oPkgs.camlp4 ninja nodejs ];
   buildPhase = ''
