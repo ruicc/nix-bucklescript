@@ -1,21 +1,31 @@
-{ stdenv, fetchFromGitHub, ninja, nodejs }:
+{ stdenv, runCommand, fetchFromGitHub, ninja, nodejs }:
 let
   version = "6.2.0";
   ocaml =  import ./ocaml.nix {
     inherit stdenv fetchFromGitHub;
   };
-in
-stdenv.mkDerivation {
-  name = "bucklescript-${version}";
-  inherit ocaml version;
   src = fetchFromGitHub {
     owner = "BuckleScript";
     repo = "bucklescript";
     rev = "6.2.0";
     sha256 = "1v3fa6sjs4mj2mb1f7y2xl6v3j5fikc04ssb7z908q91dkzwy0mr";
   };
+  # i cant find this revision in ninja. `ninja.tar.gz` may be patched source. its too terrible.
+  ninjaSrc = runCommand "ninja-patched-source" {} ''
+    mkdir -p $out
+    tar zxvf ${src}/vendor/ninja.tar.gz -C $out
+  '';
+  ninja' = ninja.overrideAttrs (attrs: {
+    src = ninjaSrc;
+    patches = [];
+  });
+in
+stdenv.mkDerivation {
+  name = "bucklescript-${version}";
+  inherit ocaml version src;
+
   BS_RELEASE_BUILD = "true";
-  buildInputs = [ ocaml ninja nodejs ];
+  buildInputs = [ ocaml ninja' nodejs ];
   buildPhase = ''
     mkdir -p $out 
     cp -rf jscomp lib scripts vendor odoc_gen $out
@@ -31,7 +41,7 @@ stdenv.mkDerivation {
     # this also do `rm $out/vendor/ninja/snapshot/ninja.*`
     for ext in linux darwin win32;
     do
-      ln -sf ${ninja}/bin/ninja $out/vendor/ninja/snapshot/ninja.$ext
+      ln -sf ${ninja'}/bin/ninja $out/vendor/ninja/snapshot/ninja.$ext
     done
 
     mkdir -p $out/native/
@@ -41,7 +51,6 @@ stdenv.mkDerivation {
     node $out/scripts/ninja.js build
   '';
   installPhase = ''
-    sed -i 's:1.9.0.git:1.9.0:' $out/scripts/install.js
     node $out/scripts/install.js
 
     mkdir -p $out/bin
